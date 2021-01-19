@@ -1,4 +1,4 @@
-# 3_3_task
+# 3_3_task.
 
 def my_func(a, b, c):
     my_list = []
