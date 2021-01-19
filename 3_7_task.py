@@ -1,7 +1,7 @@
 # 3_7_task
 
 # Вариант 1, с запросом у пользователя без аргументов функии
-def int_func(*args):
+def int_func():
     user_answer = input('Введите текст латиницей с пробелами: ')
     print(user_answer.title())
 
@@ -15,3 +15,12 @@ def int_func2(text):
 
 
 print(int_func2('i like geekbrains'))
+
+
+# Вариант 3, с использованием *args
+def int_func3(*args):
+    letter = input('Введите текст: ')
+    print(letter.title())
+
+
+int_func3()
