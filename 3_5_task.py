@@ -1,4 +1,4 @@
-# 3_5_task
+# 3_5_task.
 
 def my_funcsumm():
     result = 0

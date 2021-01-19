@@ -1,4 +1,4 @@
-# 3_2_task
+# 3_2_task.
 
 def second_func(name, surname, age, city, email, tel):
     print(f"Имя - {name}; Фамилия - {surname}; Возраст - {age}; Город - {city}; Email - {email}; Телефон - {tel}")
