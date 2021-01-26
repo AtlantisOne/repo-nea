@@ -1,0 +1,6 @@
+string one 1
+string two
+string 3
+string
+string five hello my friend
+string i love geek brains very much
