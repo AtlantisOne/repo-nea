@@ -1,18 +1,15 @@
 # 6_1_task
 
-# Вариант 1 через цикл for и cycle
+# Вариант 1 через цикл for и if
 import time
-from itertools import cycle
 
 
 class TrafficLight1:
     def __init__(self, __color):
         self.__color = __color
 
-    count = 1
-
     def running(self):
-        for item in cycle(self.__color):
+        for item in self.__color:
             print(item)
             if item == self.__color[0]:
                 time.sleep(7)
