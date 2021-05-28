@@ -1,6 +1,6 @@
 
 -- ------------------------------------Запросы-----------------------------------------
--- 10 самых активных продавцов б.у. запчастей.
+-- 10 самых активных продавцов б.у. запчастей (используя JOIN, группировку)
 SELECT 
 	u.id as user_id, 
 	CONCAT(u.last_name, ' ', u.first_name) user,
@@ -28,7 +28,7 @@ ORDER BY parts_count DESC LIMIT 10;
 -- Отчет по пользователям, а именно: 
 -- - количество электроавтомобилей пользователя не старше 2010 года,
 -- - количество общее продаваемых запчастей пользователем,
--- - количество оценок, который поставил пользователь,
+-- - количество оценок, который поставил пользователь. (множественное использование JOIN)
 SELECT 
 	users.id as user_id, 
 	CONCAT(users.last_name, ' ', users.first_name) user,
@@ -62,7 +62,7 @@ cars_colours.name as car_colour, release_date, engine_power
 	  	ON cars_colours.id = cars.cars_colours_id;
 	  
 	  
--- Создание представления для отображения подробной информации об автомобилях.
+-- Создание представления для отображения информации о том, сколько автовладельцев женщин и мужчин.
 DROP VIEW IF EXISTS car_owners_info_cars;
 CREATE OR REPLACE VIEW car_owners_info_cars AS
 SELECT 'Автовледельцев мужчин' as gender ,COUNT(*) as users
@@ -75,38 +75,32 @@ SELECT 'Автовледельцев мужчин' as gender ,COUNT(*) as users
 
  
 -- Подсчет рейтинга автомобиля от 1 до 10 исходя из голосов пользователей,
--- используя хранимую процедуру с оконной функцией.
-TRUNCATE rating;
+-- используя хранимую процедуру.
 DELIMITER //
 DROP PROCEDURE IF EXISTS rating//
 CREATE PROCEDURE rating()
 BEGIN
-	DECLARE n INT DEFAULT 1;
-    WHILE n < 101 DO
-        INSERT INTO rating (cars_id, car_rating)
-               VALUES (n, (SELECT DISTINCT AVG(vote) OVER(PARTITION BY cars_id) FROM vote WHERE cars_id = n) );
-        SET n = n + 1;
-    END WHILE;
+UPDATE cars SET car_rating = ((SELECT AVG(vote) FROM vote WHERE cars_id = cars.id));
 END//
 DELIMITER ;
 -- Вызов хранимой процедуры рейтинга автомобилей
- CALL rating();
-
+ CALL rating(); 
 
 -- Дополнительно: Создание триггера обновления рейтинга автомобилей,
 -- при добавлении новых голосов в табилице vote
 -- триггер срабатывает каждый раз, когда появляется новый голос за авто в таблице vote:
 -- данный триггер расчитывает среднее значение из голосов пользователей vote таблицы vote,
--- далее сохраняет новый рейтинг в car_rating таблицы raiting
+-- далее сохраняет новый рейтинг в car_rating таблицы cars
 DROP TRIGGER IF EXISTS upd_rating;
 DELIMITER //
 CREATE TRIGGER upd_rating AFTER INSERT ON vote
 FOR EACH ROW 
 BEGIN
-	UPDATE rating SET
+	UPDATE cars SET
 	       car_rating = (SELECT DISTINCT AVG(vote) OVER(PARTITION BY cars_id) FROM vote WHERE cars_id = NEW.cars_id)
 	       WHERE cars_id = NEW.cars_id;
 END//
 DELIMITER ;
 
 SHOW TRIGGERS;
+-- ------------------------------------------------------------------------------------

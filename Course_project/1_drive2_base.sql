@@ -34,7 +34,7 @@ CREATE TABLE users (
 DROP TABLE IF EXISTS profiles; 
 CREATE TABLE profiles (
   user_id INT UNSIGNED NOT NULL PRIMARY KEY COMMENT "Ссылка на пользователя", 
-  gender CHAR(1) NOT NULL COMMENT "Пол",
+  gender ENUM('m', 'f') NOT NULL COMMENT "Пол",
   birthday DATE COMMENT "Дата рождения",
   city VARCHAR(130) COMMENT "Город проживания",
   country VARCHAR(130) COMMENT "Страна проживания",
@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS cars;
 CREATE TABLE cars (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT "Идентификатор строки", 
   user_id INT UNSIGNED NOT NULL COMMENT "Ссылка на пользователя, владельца авто", 
+  car_rating FLOAT(2) UNSIGNED,
   cars_models_id INT UNSIGNED NOT NULL COMMENT "Ссылка на модель авто", 
   cars_colours_id INT UNSIGNED NOT NULL COMMENT "Ссылка на цвет авто",
   release_date YEAR COMMENT "Дата выпуска авто",
@@ -64,20 +65,7 @@ CREATE TABLE vote (
  user_id INT UNSIGNED NOT NULL,
  vote TINYINT UNSIGNED,
  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "Время создания строки",  
- updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Время обновления строки"
-);
-DESC users ;
-SELECT * FROM vote;
-
-
--- Таблица рейтинга автомобилей
-DROP TABLE IF EXISTS rating;
-CREATE TABLE rating (
-  cars_id INT UNSIGNED NOT NULL PRIMARY KEY,
-  car_rating FLOAT(2) UNSIGNED
-);
-DESC rating;
-SELECT * FROM rating;
+ updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Время обновления строки");
 
 -- Таблица моделей автомобилей (справочник)
 DROP TABLE IF EXISTS cars_models; 
@@ -153,6 +141,15 @@ CREATE TABLE auto_parts (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "Время создания строки",  
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Время обновления строки"
 ) COMMENT "Товарные позиции магазина автозапчастей";
+
+-- Таблица связи автосервисов и брендов автомобилей
+DROP TABLE IF EXISTS auto_service_cars_brands;
+CREATE TABLE auto_service_cars_brands (
+  auto_service_id INT UNSIGNED NOT NULL COMMENT "Ссылка на автосервис",
+  cars_brands_id INT UNSIGNED NOT NULL COMMENT "Ссылка на бренд авто",
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "Время создания строки", 
+  PRIMARY KEY (auto_service_id, cars_brands_id) COMMENT "Составной первичный ключ"
+) COMMENT "связи автосервисов и брендов автомобилей";
 
 -- Таблица заказов магазина автозапчестей
 DROP TABLE IF EXISTS orders;
@@ -237,6 +234,7 @@ CREATE TABLE communities_users (
   PRIMARY KEY (community_id, user_id) COMMENT "Составной первичный ключ"
 ) COMMENT "Участники групп, связь между пользователями и группами";
 
+
 -- ------------------------------Создание внешних ключей-------------------------------
 
 -- Добавляем внешние ключи profiles
@@ -296,8 +294,6 @@ ALTER TABLE auto_parts
     FOREIGN KEY (cars_brands_id) REFERENCES cars_brands(id),
   ADD CONSTRAINT auto_parts_cars_user_id_fk 
     FOREIGN KEY (user_id) REFERENCES users(id);
- 
-   SHOW INDEX FROM auto_parts; 
    
 -- Добавляем внешние ключи auto_service
 ALTER TABLE auto_service
@@ -318,16 +314,18 @@ ALTER TABLE cars_models
   ADD CONSTRAINT cars_models_cars_brands_id_fk 
     FOREIGN KEY (cars_brands_id) REFERENCES cars_brands(id);
    
+-- Добавляем внешние ключи auto_service_cars_brands
+ALTER TABLE auto_service_cars_brands
+  ADD CONSTRAINT auto_service_cars_brands_auto_service_id_fk 
+    FOREIGN KEY (auto_service_id) REFERENCES auto_service(id),
+  ADD CONSTRAINT auto_service_cars_brands_cars_brands_id_fk 
+    FOREIGN KEY (cars_brands_id) REFERENCES cars_brands(id);
+   
 -- Добавляем внешние ключи vote
 ALTER TABLE vote
   ADD CONSTRAINT vote_user_id_fk
     FOREIGN KEY (user_id) REFERENCES users(id),
   ADD CONSTRAINT vote_cars_id_fk 
-    FOREIGN KEY (cars_id) REFERENCES cars(id);
-   
--- Добавляем внешние ключи rating
-ALTER TABLE rating
-  ADD CONSTRAINT rating_cars_id_fk 
     FOREIGN KEY (cars_id) REFERENCES cars(id);
    
 -- ------------------------Создаем индексы для таблиц----------------------------------
